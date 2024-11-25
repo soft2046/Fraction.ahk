@@ -19,10 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Fraction
 {
+    static ReduceImpl := Fraction.prototype.Reduce
+    static CheckFractionImpl := Fraction.prototype.CheckFraction
+
     __New(Numerator := 0,Denominator := "")
     {
-        this.DefineProp("Reduce", {Call: Fraction.prototype.ReduceImpl})
-        this.DefineProp("CheckFraction", {Call: Fraction.prototype.CheckFractionImpl})
         this.Set(Numerator,Denominator)
     }
 
@@ -77,27 +78,19 @@ class Fraction
         
         If Flag ;enable fast mode
         {
-            If !this.HasOwnProp("FastMode") ;fast mode disabled
-            {
-                this.DefineProp("Reduce", {Call: (p) => p})
-                this.DefineProp("CheckFraction", {Call: (p) => {}})
-                this.FastMode := True
-            }
+            this.DefineProp("Reduce", {Call: (p) => p})
+            this.DefineProp("CheckFraction", {Call: (p) => {}})
         }
         Else ;disable fast mode
         {
-            If this.HasOwnProp("FastMode") ;fast mode enabled
-            {
-                this.DefineProp("Reduce", {Call: Fraction.prototype.ReduceImpl})
-                this.DefineProp("CheckFraction", {Call: Fraction.prototype.CheckFractionImpl})
-                this.DeleteProp("FastMode")
-                this.Reduce()
-            }
+            this.DefineProp("Reduce", {Call: Fraction.ReduceImpl})
+            this.DefineProp("CheckFraction", {Call: Fraction.CheckFractionImpl})
+            this.Reduce()
         }
         Return this
     }
 
-    CheckFractionImpl(Value) {
+    CheckFraction(Value) {
       if (!Value.HasOwnProp("Numerator") || !Value.HasOwnProp("Denominator")) {
         throw ValueError("Invalid fraction: " . Value, -2)
       }
@@ -114,7 +107,7 @@ class Fraction
         Return Abs(Number1)
     }
 
-    ReduceImpl() ;reduce fraction to simplest form
+    Reduce() ;reduce fraction to simplest form
     {
         GCD := this.IntegerGCD(this.Numerator,this.Denominator)
         this.Numerator //= GCD

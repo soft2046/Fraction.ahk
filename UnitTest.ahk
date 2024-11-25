@@ -41,7 +41,10 @@ class TestFraction
     {
         f := Fraction()
         f.Fast().Set(5,10)
-        Return this.Check(f,5,10)
+        if !this.Check(f,5,10)
+          Return false
+        f.Fast(false)
+        Return this.Check(f,1,2)
     }
 
     testReduce()
