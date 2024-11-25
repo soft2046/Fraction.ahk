@@ -1,5 +1,3 @@
-#NoEnv
-
 /*
 Copyright 2013 Anthony Zhang <azhang9@gmail.com>
 
@@ -19,184 +17,184 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-If TestFraction.Run(Pass,Fail)
-    MsgBox, All tests passed.
+If TestFraction().Run(&Pass,&Fail)
+    MsgBox "All tests passed."
 Else
 {
     Result := ""
     For Index, Name In Fail
         Result .= "`n" . Name
-    MsgBox, Some tests failed:`n%Result%
+    MsgBox "Some tests failed:`n" . Result
 }
 
 #Include %A_ScriptDir%\Fraction.ahk
 
 class TestFraction
 {
-    _Create()
+    testCreate()
     {
-        f := new Fraction(-3,-2)
-        Return, this.Check(f,3,2)
+        f := Fraction(-3,-2)
+        Return this.Check(f,3,2)
     }
 
-    _Fast()
+    testFast()
     {
-        f := new Fraction
+        f := Fraction()
         f.Fast().Set(5,10)
-        Return, this.Check(f,5,10)
+        Return this.Check(f,5,10)
     }
 
-    _Reduce()
+    testReduce()
     {
-        f := new Fraction(45,-9)
+        f := Fraction(45,-9)
         t := f.Reduce()
-        Return, this.Check(t,-5,1)
+        Return this.Check(t,-5,1)
     }
 
-    _Set()
+    testSet()
     {
-        f := new Fraction
-        Return, this.Check(f.Set(4,-7),-4,7)
+        f := Fraction()
+        Return this.Check(f.Set(4,-7),-4,7)
     }
 
-    _FromNumber()
+    testFromNumber()
     {
-        f := new Fraction
-        Return, this.Check(f.Set(-0.457),-69,151)
+        f := Fraction()
+        Return this.Check(f.Set(-0.457),-69,151)
     }
 
-    _FromString()
+    testFromString()
     {
-        f := new Fraction
-        Return, this.Check(f.Set("  -45  /  -7   "),45,7)
+        f := Fraction()
+        Return this.Check(f.Set("  -45  /  -7   "),45,7)
     }
 
-    _ToNumber()
+    testToNumber()
     {
-        f := new Fraction(5,4)
-        Return, f.ToNumber() = 1.25
+        f := Fraction(5,4)
+        Return f.ToNumber() = 1.25
     }
 
-    _ToString()
+    testToString()
     {
-        f := new Fraction(3,-2)
-        Return, f.ToString() = "-3/2"
+        f := Fraction(3,-2)
+        Return f.ToString() = "-3/2"
     }
 
-    _Equal()
+    testEqual()
     {
-        f := new Fraction(5,-6)
-        Return, f.Equal(new Fraction(-20,24))
+        f := Fraction(5,-6)
+        Return f.Equal(Fraction(-20,24))
     }
 
-    _Less()
+    testLess()
     {
-        f := new Fraction(-1,7)
-        Return, f.Less(new Fraction(4,3))
+        f := Fraction(-1,7)
+        Return f.Less(Fraction(4,3))
     }
 
-    _LessOrEqual()
+    testLessOrEqual()
     {
-        f := new Fraction(5,-7)
-        Return, f.Less(new Fraction(-2,3))
+        f := Fraction(5,-7)
+        Return f.Less(Fraction(-2,3))
     }
 
-    _Greater()
+    testGreater()
     {
-        f := new Fraction(1,-6)
-        Return, f.Greater(new Fraction(-2,3))
+        f := Fraction(1,-6)
+        Return f.Greater(Fraction(-2,3))
     }
 
-    _GreaterOrEqual()
+    testGreaterOrEqual()
     {
-        f := new Fraction(7,9)
-        Return, f.GreaterOrEqual(new Fraction(4,10))
+        f := Fraction(7,9)
+        Return f.GreaterOrEqual(Fraction(4,10))
     }
 
-    _Sign()
+    testSign()
     {
-        f := new Fraction(-1,-2)
-        Return, f.Sign() = 1
+        f := Fraction(-1,-2)
+        Return f.Sign() = 1
     }
 
-    _Abs()
+    testAbs()
     {
-        f := new Fraction(9,-6)
-        Return, this.Check(f.Abs(),3,2)
+        f := Fraction(9,-6)
+        Return this.Check(f.Abs(),3,2)
     }
 
-    _Add()
+    testAdd()
     {
-        f := new Fraction(7,6)
-        Return, this.Check(f.Add(new Fraction(4,9)),29,18)
+        f := Fraction(7,6)
+        Return this.Check(f.Add(Fraction(4,9)),29,18)
     }
 
-    _Subtract()
+    testSubtract()
     {
-        f := new Fraction(7,4)
-        Return, this.Check(f.Subtract(new Fraction(2,5)),27,20)
+        f := Fraction(7,4)
+        Return this.Check(f.Subtract(Fraction(2,5)),27,20)
     }
 
-    _Multiply()
+    testMultiply()
     {
-        f := new Fraction(5,2)
-        Return, this.Check(f.Divide(new Fraction(4,3)),15,8)
+        f := Fraction(5,2)
+        Return this.Check(f.Divide(Fraction(4,3)),15,8)
     }
 
-    _Divide()
+    testDivide()
     {
-        f := new Fraction(2,6)
-        Return, this.Check(f.Divide(new Fraction(7,5)),5,21)
+        f := Fraction(2,6)
+        Return this.Check(f.Divide(Fraction(7,5)),5,21)
     }
 
-    _Remainder()
+    testRemainder()
     {
-        f := new Fraction(5,-3)
-        t := f.Remainder(new Fraction(-3,2))
-        Return, this.Check(t,-1,6)
+        f := Fraction(5,-3)
+        t := f.Remainder(Fraction(-3,2))
+        Return this.Check(t,-1,6)
     }
 
-    _Exponentiate()
+    testExponentiate()
     {
-        f := new Fraction(-4,-2)
+        f := Fraction(-4,-2)
         t := f.Exponentiate(3)
-        Return, this.Check(t,8,1)
+        Return this.Check(t,8,1)
     }
 
-    _GCD()
+    testGCD()
     {
-        f := new Fraction(-3,4)
-        t := f.GCD(new Fraction(21,23))
-        Return, this.Check(t,3,92)
+        f := Fraction(-3,4)
+        t := f.GCD(Fraction(21,23))
+        Return this.Check(t,3,92)
     }
 
-    _LCM()
+    testLCM()
     {
-        f := new Fraction(4,-3)
-        t := f.LCM(new Fraction(-2,7))
-        Return, this.Check(t,4,1)
+        f := Fraction(4,-3)
+        t := f.LCM(Fraction(-2,7))
+        Return this.Check(t,4,1)
     }
 
     Check(Value,Numerator,Denominator)
     {
-        Return, Value.Numerator = Numerator && Value.Denominator = Denominator
+        Return Value.Numerator = Numerator && Value.Denominator = Denominator
     }
 
-    Run(ByRef Pass,ByRef Fail)
+    Run(&Pass,&Fail)
     {
         Pass := []
         Fail := []
-        For Name, Test In this
+        For Name In TestFraction.Prototype.OwnProps()
         {
-            If IsFunc(Test) && SubStr(Name,1,1) = "_"
+            If SubStr(Name,1,4) = "test"
             {
-                Result := Test.(this)
+                Result := ObjBindMethod(this, Name)()
                 If Result
-                    Pass.Insert(Name)
+                    Pass.Push(Name)
                 Else
-                    Fail.Insert(Name)
+                    Fail.Push(Name)
             }
         }
-        Return, !Fail.MaxIndex()
+        Return !Fail.Length
     }
 }

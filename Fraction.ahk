@@ -1,5 +1,3 @@
-#NoEnv
-
 /*
 Copyright 2013 Anthony Zhang <azhang9@gmail.com>
 
@@ -21,12 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Fraction
 {
-    __New(Numerator = 0,Denominator = "")
+    __New(Numerator := 0,Denominator := "")
     {
+        this.DefineProp("Reduce", {Call: Fraction.prototype.ReduceImpl})
+        this.DefineProp("CheckFraction", {Call: Fraction.prototype.CheckFractionImpl})
         this.Set(Numerator,Denominator)
     }
 
-    Set(Numerator = 0,Denominator = "")
+    Set(Numerator := 0,Denominator := "")
     {
         If (Denominator = "")
         {
@@ -37,19 +37,19 @@ class Fraction
         }
         Else
         {
-            If Numerator Is Not Integer
-                throw Exception("Invalid numerator: " . Numerator)
-            If Denominator Is Not Integer
-                throw Exception("Invalid denominator: " . Denominator)
+            If !IsInteger(Numerator)
+                throw ValueError("Invalid numerator: " . Numerator)
+            If !IsInteger(Denominator)
+                throw ValueError("Invalid denominator: " . Denominator)
             If Denominator = 0
-                throw Exception("Invalid denominator: " . Denominator)
+                throw ZeroDivisionError("Invalid denominator: " . Denominator)
             this.Numerator := Numerator
             this.Denominator := Denominator
         }
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 
-    FromNumber(Value,Error = 0.0001)
+    FromNumber(Value,Error := 0.0001)
     {
         Loop
         {
@@ -58,84 +58,63 @@ class Fraction
             If Abs((this.Numerator / this.Denominator) - Value) <= Error
                 Break
         }
-        Return, this
+        Return this
     }
 
     FromString(Value)
     {
-        If !RegExMatch(Value,"S)^\s*(-?\d+)\s*/\s*(-?\d+)\s*$",Field)
-            throw Exception("Invalid fraction string: " . Value)
-        If Field2 = 0
-            throw Exception("Invalid denominator: " . Field2)
-        this.Numerator := Field1
-        this.Denominator := Field2
-        Return, this.Reduce()
+        If !RegExMatch(Value,"S)^\s*(-?\d+)\s*/\s*(-?\d+)\s*$",&Field)
+            throw ValueError("Invalid fraction string: " . Value)
+        If Field.2 = 0
+            throw ZeroDivisionError("Invalid denominator: " . Field.2)
+        this.Numerator := Field.1
+        this.Denominator := Field.2
+        Return this.Reduce()
     }
 
-    Fast(Flag = True)
+    Fast(Flag := True)
     {
+        
         If Flag ;enable fast mode
         {
-            If !this.HasKey("Fast") ;fast mode disabled
+            If !this.HasOwnProp("FastMode") ;fast mode disabled
             {
-                ;swap stub methods for real ones
-                Value := this.StubReduce
-                this.StubReduce := this.Reduce
-                this.Reduce := Value
-                Value := this.StubCheckFraction
-                this.StubCheckFraction := this.CheckFraction
-                this.CheckFraction := Value
-
-                this.Fast := True
+                this.DefineProp("Reduce", {Call: (p) => p})
+                this.DefineProp("CheckFraction", {Call: (p) => {}})
+                this.FastMode := True
             }
         }
         Else ;disable fast mode
         {
-            If this.HasKey("Fast") ;fast mode enabled
+            If this.HasOwnProp("FastMode") ;fast mode enabled
             {
-                ;swap real methods for stubs
-                Value := this.StubReduce
-                this.StubReduce := this.Reduce
-                this.Reduce := Value
-                Value := this.StubCheckFraction
-                this.StubCheckFraction := this.CheckFraction
-                this.CheckFraction := Value
-
-                this.Remove("Fast")
+                this.DefineProp("Reduce", {Call: Fraction.prototype.ReduceImpl})
+                this.DefineProp("CheckFraction", {Call: Fraction.prototype.CheckFractionImpl})
+                this.DeleteProp("FastMode")
                 this.Reduce()
             }
         }
-        Return, this
+        Return this
     }
 
-    CheckFraction(Value)
-    {
-        If !(Value.HasKey("Numerator") && Value.HasKey("Denominator"))
-            throw Exception("Invalid fraction: " . Value,-2)
-    }
-
-    StubCheckFraction(Value)
-    {
-        
-    }
-
-    StubReduce()
-    {
-        Return, this
+    CheckFractionImpl(Value) {
+      if (!Value.HasOwnProp("Numerator") || !Value.HasOwnProp("Denominator")) {
+        throw ValueError("Invalid fraction: " . Value, -2)
+      }
     }
 
     IntegerGCD(Number1,Number2) ;greatest common divisor
     {
-        While, Number2 != 0
+        While Number2 != 0
         {
             Remainder := Mod(Number1,Number2)
             Temp1 := Abs(Remainder - Number2)
             Number1 := Number2, Number2 := (Remainder > Temp1) ? Temp1 : Remainder
         }
-        Return, Abs(Number1)
+        Return Abs(Number1)
     }
 
-    Reduce() ;reduce fraction to simplest form
+    ReduceImpl() ;reduce fraction to simplest form
     {
         GCD := this.IntegerGCD(this.Numerator,this.Denominator)
         this.Numerator //= GCD
@@ -145,75 +124,75 @@ class Fraction
             this.Numerator := -this.Numerator
             this.Denominator := -this.Denominator
         }
-        Return, this
+        Return this
     }
 
     ToNumber()
     {
-        Return, this.Numerator / this.Denominator
+        Return this.Numerator / this.Denominator
     }
 
     ToString()
     {
-        Return, this.Numerator . "/" . this.Denominator
+        Return this.Numerator . "/" . this.Denominator
     }
 
     Equal(Value)
     {
         this.CheckFraction(Value)
-        Return, (this.Numerator * Value.Denominator) = (Value.Numerator * this.Denominator)
+        Return (this.Numerator * Value.Denominator) = (Value.Numerator * this.Denominator)
     }
 
     Less(Value)
     {
         this.CheckFraction(Value)
         If (this.Denominator < 0) ^ (Value.Denominator < 0) ;difference has negative denominator
-            Return, (this.Numerator * Value.Denominator) > (Value.Numerator * this.Denominator)
+            Return (this.Numerator * Value.Denominator) > (Value.Numerator * this.Denominator)
         Else
-            Return, (this.Numerator * Value.Denominator) < (Value.Numerator * this.Denominator)
+            Return (this.Numerator * Value.Denominator) < (Value.Numerator * this.Denominator)
     }
 
     LessOrEqual(Value)
     {
         this.CheckFraction(Value)
         If (this.Denominator < 0) ^ (Value.Denominator < 0) ;difference has negative denominator
-            Return, (this.Numerator * Value.Denominator) >= (Value.Numerator * this.Denominator)
+            Return (this.Numerator * Value.Denominator) >= (Value.Numerator * this.Denominator)
         Else
-            Return, (this.Numerator * Value.Denominator) <= (Value.Numerator * this.Denominator)
+            Return (this.Numerator * Value.Denominator) <= (Value.Numerator * this.Denominator)
     }
 
     Greater(Value)
     {
         this.CheckFraction(Value)
         If (this.Denominator < 0) ^ (Value.Denominator < 0) ;difference has negative denominator
-            Return, (this.Numerator * Value.Denominator) < (Value.Numerator * this.Denominator)
+            Return (this.Numerator * Value.Denominator) < (Value.Numerator * this.Denominator)
         Else
-            Return, (this.Numerator * Value.Denominator) > (Value.Numerator * this.Denominator)
+            Return (this.Numerator * Value.Denominator) > (Value.Numerator * this.Denominator)
     }
 
     GreaterOrEqual(Value)
     {
         this.CheckFraction(Value)
         If (this.Denominator < 0) ^ (Value.Denominator < 0) ;difference has negative denominator
-            Return, (this.Numerator * Value.Denominator) <= (Value.Numerator * this.Denominator)
+            Return (this.Numerator * Value.Denominator) <= (Value.Numerator * this.Denominator)
         Else
-            Return, (this.Numerator * Value.Denominator) >= (Value.Numerator * this.Denominator)
+            Return (this.Numerator * Value.Denominator) >= (Value.Numerator * this.Denominator)
     }
 
     Sign()
     {
         If this.Numerator = 0
-            Return, 0
+            Return 0
         If ((this.Numerator < 0) ^ (this.Denominator < 0))
-            Return, -1
-        Return, 1
+            Return -1
+        Return 1
     }
 
     Abs()
     {
         this.Numerator := Abs(this.Numerator)
         this.Denominator := Abs(this.Denominator)
-        Return, this
+        Return this
     }
 
     Add(Value)
@@ -221,7 +200,7 @@ class Fraction
         this.CheckFraction(Value)
         this.Numerator := (this.Numerator * Value.Denominator) + (Value.Numerator * this.Denominator)
         this.Denominator *= Value.Denominator
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 
     Subtract(Value)
@@ -229,7 +208,7 @@ class Fraction
         this.CheckFraction(Value)
         this.Numerator := (this.Numerator * Value.Denominator) - (Value.Numerator * this.Denominator)
         this.Denominator *= Value.Denominator
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 
     Multiply(Value)
@@ -237,17 +216,17 @@ class Fraction
         this.CheckFraction(Value)
         this.Numerator *= Value.Numerator
         this.Denominator *= Value.Denominator
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 
     Divide(Value)
     {
         this.CheckFraction(Value)
         If Value.Numerator = 0 ;division by zero
-            throw Exception("Invalid divisor: " . Value.ToString())
+            throw ZeroDivisionError("Invalid divisor: " . Value.ToString())
         this.Numerator *= Value.Denominator
         this.Denominator *= Value.Numerator
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 
     Remainder(Value)
@@ -257,13 +236,13 @@ class Fraction
         Numerator := Value.Numerator * IntegerQuotient
         this.Numerator := (this.Numerator * Value.Denominator) - (Numerator * this.Denominator)
         this.Denominator *= Value.Denominator
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 
     Exponentiate(Value)
     {
-        If Value Is Not Integer ;ensure the exponent is a whol number
-            throw Exception("Invalid exponent: " . Value)
+        If !IsInteger(Value) ;ensure the exponent is a whol number
+            throw ValueError("Invalid exponent: " . Value)
         If Value >= 0 ;positive exponent
         {
             this.Numerator := this.Numerator ** Value
@@ -275,7 +254,7 @@ class Fraction
             this.Denominator := this.Numerator ** Value
             this.Numerator := Numerator
         }
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 
     GCD(Value) ;greatest common divisor (GCD(a/b,c/d)=GCD(a*d,b*c)/b*d)
@@ -283,7 +262,7 @@ class Fraction
         this.CheckFraction(Value)
         this.Numerator := this.IntegerGCD(this.Numerator * Value.Denominator,Value.Numerator * this.Denominator)
         this.Denominator := Abs(this.Denominator * Value.Denominator)
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 
     LCM(Value) ;least common multiple (LCM(a/b,c/d)=LCM(a*d,b*c)/b*d)
@@ -293,6 +272,7 @@ class Fraction
         Number2 := Value.Numerator * this.Denominator
         this.Numerator := Abs(Number1 * Number2) // this.IntegerGCD(Number1,Number2)
         this.Denominator := Abs(this.Denominator * Value.Denominator)
-        Return, this.Reduce()
+        Return this.Reduce()
     }
 }
+
